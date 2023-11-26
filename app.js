@@ -1,11 +1,48 @@
 'use strict';
 
+const { sequelize, models } = require('./db');
+
 // load modules
 const express = require('express');
 const morgan = require('morgan');
 
+// Get references to our models.
+const { User, Course } = models;
+
 // variable to enable global error logging
 const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'true';
+
+console.log('Testing the connection to the database...');
+
+(async () => {
+  try {
+    // Test the connection to the database
+    await sequelize.authenticate();
+    console.log('Connection to the database successful!');
+
+    // Sync the models
+    console.log('Synchronizing the models with the database...');
+    await sequelize.sync({ force: true });
+  } catch(error) {
+  }
+  // Retrieve users
+  const users = await Course.findAll({
+    include: [{
+      model: User,
+      as: 'student',
+    }],
+  });
+  console.log(users.map(user => user.get({ plain: true })));
+
+  // Retrieve courses
+  const courses = await User.findAll({
+    include: [{
+      model: Course,
+      as: 'student',
+    }],
+  });
+  console.log(JSON.stringify(courses, null, 2));
+})();
 
 // create the Express app
 const app = express();

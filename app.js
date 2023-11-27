@@ -1,7 +1,7 @@
 'use strict';
 
 const { sequelize, models } = require('./models');
-// const router = require('./api');
+const Router = require('./routes');
 
 // load modules
 const express = require('express');
@@ -9,9 +9,6 @@ const morgan = require('morgan');
 
 // variable to enable global error logging
 const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'true';
-
-// Get references to our models.
-const { User, Course } = require('./models');
 
 console.log('Testing the connection to the database...');
 
@@ -52,6 +49,9 @@ const app = express();
 
 // setup morgan which gives us http request logging
 app.use(morgan('dev'));
+
+//api in route
+app.use("/api", Router)
 
 // setup a friendly greeting for the root route
 app.get('/', (req, res) => {

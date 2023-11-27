@@ -1,19 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 
 const User = require('./models').User;
 const Course = require('./models').Course;
-
-
-
-function asyncHandler(cb){
-  return async(req,res,next) =>{
-    try{
-      await cb(req,res, next);
-    }catch(error){
-      next(error);
-  }}
-}
 
 
 function asyncHandler(cb){
@@ -28,17 +18,43 @@ function asyncHandler(cb){
 //GET all users
 router.get('/users', asyncHandler(async (req, res) => {
   const users = await User.findAll();
-  res.render(users);
+  res.json(users);
 
 }));
 
 //POST creates a new user into the database
 router.post('/users', asyncHandler(async (req, res) => {
+  const errors = [];
   try{
-
-    const user = await User.create(req.body);
-    res.location("/").status(201).end();
-
+    const user = await User.build(req.body);
+    // Validate that we have a `name` value.
+  if (!user.firstName) {
+    errors.push('Please provide a value for "first name"');
+  }
+  if (!user.lastName) {
+    errors.push('Please provide a value for "last name"');
+  }
+  // Validate that we have an `email` value.
+  if (!user.emailAddress) {
+    errors.push('Please provide a value for "emailAddress"');
+  }
+  let password = user.password;
+  if (!password) {
+    errors.push('Please provide a value for "password"');
+  } else if (password.length < 8 || password.length > 20) {
+    errors.push('Your password should be between 8 and 20 characters');
+  } else {
+    user.password = bcrypt.hashSync(password, 10);
+  }
+  if (errors.length > 0) {
+    // Return the validation errors to the client.
+    res.status(400).json({ errors });
+  } 
+  // Set the status to 201 Created and end the response.
+  res.json(user)
+  res.status(201).location("/").end();
+  
+    
   } catch(error){
     if(error.name === "SequelizeValidationError") { 
       const user = await User.build(req.body);
@@ -49,38 +65,51 @@ router.post('/users', asyncHandler(async (req, res) => {
   }
 }));
 
-// //GET all courses
-// router.get('/courses', asyncHandler(async (req, res) => {
-//   const books = await Course.findAll();
-//   res.render("index",{books});
-// }));
+//GET all courses
+router.get('/courses', asyncHandler(async (req, res) => {
+  const courses = await Course.findAll();
+  res.json(courses);
+}));
 
-// //GET specific course
-// router.get('/course/:id', asyncHandler(async(req, res, next) => {
-//     const book = await Course.findByPk(req.params.id);
-//     if (book){
-//       res.render("update-book",{book, title: book.title})
-//     } else{
-//       const error = new Error("The book you're trying to find doesn't exist");
-//       error.status = 404;
-//       next(error);
-//     }
-//   }));
+//GET specific course
+router.get('/courses/:id', asyncHandler(async(req, res, next) => {
+    const course = await Course.findByPk(req.params.id);
+    if (course){
+      res.json(course);
+    } else{
+      const error = new Error("The book you're trying to find doesn't exist");
+      error.status = 404;
+      next(error);
+    }
+  }));
 
-// //POST creates a new course
-// router.post('/course/new', asyncHandler(async (req, res) => {
-//   try{
-//     const book = await Book.create(req.body);
-//     res.redirect("/books/"+ book.id);
-//   } catch(error){
-//     if(error.name === "SequelizeValidationError") { 
-//       const book = await Book.build(req.body);
-//       res.render("new-book", {book, errors: error.errors, title: "New Book" })
-//     } else {
-//       throw error;
-//     } 
-//   }
-// }));
+//POST creates a new course
+router.post('/courses', asyncHandler(async (req, res) => {
+  const errors = [];
+  try{
+    const course = await Course.build(req.body);
+    if (!course.title) {
+      errors.push('Please provide a value for "title"');
+    }
+    if (!course.description) {
+      errors.push('Please provide a value for "description"');
+    }
+    if (errors.length > 0) {
+      // Return the validation errors to the client.
+      res.status(400).json({ errors });
+    } 
+    // Set the status to 201 Created and end the response.
+    res.status(201).location("/").end();
+    
+  } catch(error){
+    if(error.name === "SequelizeValidationError") { 
+      const course = await Course.build(req.body);
+      res.render("new-book", {book, errors: error.errors, title: "New Book" })
+    } else {
+      throw error;
+    } 
+  }
+}));
 
 // // Put updates course in the database
 // router.put('/books/:id', asyncHandler(async( req, res) => {

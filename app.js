@@ -1,16 +1,17 @@
 'use strict';
 
-const { sequelize, models } = require('./db');
+const { sequelize, models } = require('./models');
+// const router = require('./api');
 
 // load modules
 const express = require('express');
 const morgan = require('morgan');
 
-// Get references to our models.
-const { User, Course } = models;
-
 // variable to enable global error logging
 const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'true';
+
+// Get references to our models.
+const { User, Course } = require('./models');
 
 console.log('Testing the connection to the database...');
 
@@ -26,22 +27,24 @@ console.log('Testing the connection to the database...');
   } catch(error) {
   }
   // Retrieve users
-  const users = await Course.findAll({
-    include: [{
-      model: User,
-      as: 'student',
-    }],
-  });
-  console.log(users.map(user => user.get({ plain: true })));
+  // const users = await Course.findAll({
+  //   include: [{
+  //     model: Course,
+  //     as: 'student',
+  //   }],
+  // });
+  // console.log(users.map(user => user.get({ plain: true })));
 
-  // Retrieve courses
-  const courses = await User.findAll({
-    include: [{
-      model: Course,
-      as: 'student',
-    }],
-  });
-  console.log(JSON.stringify(courses, null, 2));
+  // app.use('/api', router);
+
+  // // Retrieve courses
+  // const courses = await User.findAll({
+  //   include: [{
+  //     model: User,
+  //     as: 'student',
+  //   }],
+  // });
+  // console.log(JSON.stringify(courses, null, 2));
 })();
 
 // create the Express app

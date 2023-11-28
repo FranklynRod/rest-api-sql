@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 const User = require('./models').User;
 const Course = require('./models').Course;
 
-// const { authenticateUser } = require('./app');
+const { authenticateUser } = require('./app');
 
 function asyncHandler(cb){
   return async(req,res,next) =>{
@@ -18,9 +18,13 @@ function asyncHandler(cb){
 }
 
 //GET all users
-router.get('/users', asyncHandler(async (req, res) => {
-  const users = await User.findAll();
-  res.json(users).status(200);
+router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
+  // const users = await User.findAll();
+  const user = req.currentUser;
+  res.json({
+    name: user.name,
+    username: user.username
+  }).status(200);
 
 }));
 
@@ -139,13 +143,12 @@ router.put('/courses/:id', asyncHandler(async( req, res) => {
 }));
 
 // DELETE delete course from database
-router.delete('/courses/:id/delete', asyncHandler(async( req, res) => {
+router.delete('/courses/:id', asyncHandler(async( req, res) => {
   try{
     const course = await Course.findByPk(req.params.id);
-    
     if (course){
       await course.destroy();
-      res.status(204)
+      res.status(204).end()
     } else{
       const error = new Error("The page you're trying to find doesn't exist");
       error.status = 404;

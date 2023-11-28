@@ -5,12 +5,14 @@ const bcrypt = require('bcryptjs');
 const User = require('./models').User;
 const Course = require('./models').Course;
 
+// const { authenticateUser } = require('./app');
 
 function asyncHandler(cb){
   return async(req,res,next) =>{
     try{
       await cb(req,res, next);
     }catch(error){
+  // Forward error to the global error handler
       next(error);
   }}
 }
@@ -18,7 +20,7 @@ function asyncHandler(cb){
 //GET all users
 router.get('/users', asyncHandler(async (req, res) => {
   const users = await User.findAll();
-  res.json(users);
+  res.json(users).status(200);
 
 }));
 
@@ -26,7 +28,7 @@ router.get('/users', asyncHandler(async (req, res) => {
 router.post('/users', asyncHandler(async (req, res) => {
   const errors = [];
   try{
-    const user = await User.build(req.body);
+    const user = await User.create(req.body);
     // Validate that we have a `name` value.
   if (!user.firstName) {
     errors.push('Please provide a value for "first name"');
@@ -45,19 +47,23 @@ router.post('/users', asyncHandler(async (req, res) => {
     errors.push('Your password should be between 8 and 20 characters');
   } else {
     user.password = bcrypt.hashSync(password, 10);
+    // set(val) {
+    //   if (val === this.password) {
+    //     const hashedPassword = bcrypt.hashSync(val, 10);
+    //     this.setDataValue('confirmedPassword', hashedPassword);
+    //   }
   }
   if (errors.length > 0) {
     // Return the validation errors to the client.
     res.status(400).json({ errors });
   } 
   // Set the status to 201 Created and end the response.
-  res.json(user)
   res.status(201).location("/").end();
   
   } catch(error){
-    if(error.name === "SequelizeValidationError") { 
-      const user = await User.build(req.body);
-      res.status(400).json({ error });
+    if(error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') { 
+      const errors = error.errors.map(err => err.message);
+      res.status(400).json({ errors });
     } else {
       throw error;
     } 
@@ -67,14 +73,14 @@ router.post('/users', asyncHandler(async (req, res) => {
 //GET all courses
 router.get('/courses', asyncHandler(async (req, res) => {
   const courses = await Course.findAll();
-  res.json(courses);
+  res.json(courses).status(200);
 }));
 
 //GET specific course
 router.get('/courses/:id', asyncHandler(async(req, res, next) => {
     const course = await Course.findByPk(req.params.id);
     if (course){
-      res.json(course);
+      res.json(course).status(200);
     } else{
       const error = new Error("The book you're trying to find doesn't exist");
       error.status = 404;
@@ -86,7 +92,7 @@ router.get('/courses/:id', asyncHandler(async(req, res, next) => {
 router.post('/courses', asyncHandler(async (req, res) => {
   const errors = [];
   try{
-    const course = await Course.build(req.body);
+    const course = await Course.create(req.body);
     if (!course.title) {
       errors.push('Please provide a value for "title"');
     }
@@ -98,64 +104,61 @@ router.post('/courses', asyncHandler(async (req, res) => {
       res.status(400).json({ errors });
     } 
     // Set the status to 201 Created and end the response.
-    res.status(201).location("/").end();
+    res.status(201).location("/courses").end();
     
   } catch(error){
-    if(error.name === "SequelizeValidationError") { 
-      const course = await Course.build(req.body);
-      res.json(course)
+    if(error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') { 
+      const errors = error.errors.map(err => err.message);
+      res.status(400).json({ errors });
     } else {
       throw error;
     } 
   }
 }));
 
-// // Put updates course in the database
-// router.put('/books/:id', asyncHandler(async( req, res) => {
-//   try{
-//     const book = await Book.findByPk(req.params.id);
-//     await book.update(req.body)
-//     if (book){
-//       res.redirect("/")
-//     } else{
-//       const error = new Error("The page you're trying to find doesn't exist");
-//       error.status = 404;
-//       next(error);
-//     }
-//   } catch(error){
-//     if(error.name === "SequelizeValidationError") { 
-//       const book = await Book.build(req.body);
-//       book.id = req.params.id;
-//       res.render("update-book", {book, errors: error.errors, title: "New Book" })
-//     } else {
-//       throw error;
-//     } 
-//   }
-// }));
+// Put updates course in the database
+router.put('/courses/:id', asyncHandler(async( req, res) => {
+  try{
+    const course = await Course.findByPk(req.params.id);
+    await course.update(req.body)
+    if (course){
+      res.status(204)
+    } else{
+      const error = new Error("The page you're trying to find doesn't exist");
+      error.status = 404;
+      next(error);
+    }
+  } catch(error){
+    if(error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') { 
+      const error = error.errors.map(err => err.message);
+      res.status(400).json({ error });
+    } else {
+      throw error;
+    } 
+  }
+}));
 
-// // DELETE delete book from database
-// router.delete('/books/:id/delete', asyncHandler(async( req, res) => {
-//   try{
-//     const book = await Book.findByPk(req.params.id);
+// DELETE delete course from database
+router.delete('/courses/:id/delete', asyncHandler(async( req, res) => {
+  try{
+    const course = await Course.findByPk(req.params.id);
     
-//     if (book){
-//       await book.destroy();
-//       res.redirect("/books");
-//     } else{
-//       const error = new Error("The page you're trying to find doesn't exist");
-//       error.status = 404;
-//       next(error);
-//     }
-//   }catch(error){
-//     if(error.name === "SequelizeValidationError") { 
-//       const book = await Book.build(req.body);
-//       book.id = req.params.id;
-//       res.render("update-book", {book, errors: error.errors, title: "New Book" })
-//     } else {
-//       throw error;
-//     } 
-//   }
-// }));
+    if (course){
+      await course.destroy();
+      res.status(204)
+    } else{
+      const error = new Error("The page you're trying to find doesn't exist");
+      error.status = 404;
+      next(error);
+    }
+  }catch(error){
+    if(error.name === "SequelizeValidationError") { 
+      res.status(400)
+    } else {
+      throw error;
+    } 
+  }
+}));
 
 
 module.exports = router;

@@ -13,6 +13,7 @@ Course.init({
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
+      allowNull: false,
     },
 
     title: {
@@ -35,11 +36,11 @@ Course.init({
     },
     estimatedTime: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       materialsNeeded: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
      
   }, {sequelize});

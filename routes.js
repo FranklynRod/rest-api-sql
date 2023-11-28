@@ -122,7 +122,7 @@ router.put('/courses/:id', asyncHandler(async( req, res) => {
     const course = await Course.findByPk(req.params.id);
     await course.update(req.body)
     if (course){
-      res.status(204)
+      res.status(204).end();
     } else{
       const error = new Error("The page you're trying to find doesn't exist");
       error.status = 404;
@@ -130,8 +130,8 @@ router.put('/courses/:id', asyncHandler(async( req, res) => {
     }
   } catch(error){
     if(error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') { 
-      const error = error.errors.map(err => err.message);
-      res.status(400).json({ error });
+      const errors = error.errors.map(err => err.message);
+      res.status(400).json({ errors });
     } else {
       throw error;
     } 

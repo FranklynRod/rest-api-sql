@@ -3,7 +3,6 @@
 const { sequelize, User } = require('./models');
 const Router = require('./routes');
 
-
 // load modules
 const express = require('express');
 const morgan = require('morgan');
@@ -22,7 +21,7 @@ console.log('Testing the connection to the database...');
 
     // Sync the models
     console.log('Synchronizing the models with the database...');
-    await sequelize.sync({ force: true });
+    await sequelize.sync();
   } catch(error) {
   }
   // Retrieve users

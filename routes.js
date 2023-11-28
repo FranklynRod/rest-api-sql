@@ -124,8 +124,8 @@ router.post('/courses', asyncHandler(async (req, res) => {
 router.put('/courses/:id', asyncHandler(async( req, res) => {
   try{
     const course = await Course.findByPk(req.params.id);
-    await course.update(req.body)
     if (course){
+      await course.update(req.body)
       res.status(204).end();
     } else{
       const error = new Error("The page you're trying to find doesn't exist");

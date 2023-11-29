@@ -7,7 +7,6 @@ const Router = require('./routes');
 const express = require('express');
 const morgan = require('morgan');
 
-const auth = require('basic-auth');
 // variable to enable global error logging
 const enableGlobalErrorLogging = process.env.ENABLE_GLOBAL_ERROR_LOGGING === 'true';
 
@@ -44,37 +43,6 @@ console.log('Testing the connection to the database...');
   // });
   // console.log(JSON.stringify(courses, null, 2));
 })();
-
-exports.authenticateUser = async (req, res, next) => {
-  let message;
-
-  const credentials = auth(req);
-
-  if (credentials) {
-    const user = await User.findOne({ where: {username: credentials.name} });
-    if (user) {
-      const authenticated = bcrypt
-        .compareSync(credentials.pass, user.confirmedPassword);
-      if (authenticated) {
-        console.log(`Authentication successful for username: ${user.username}`);
-
-        // Store the user on the Request object.
-        req.currentUser = user;
-      } else {
-        message = `Authentication failure for username: ${user.username}`;
-      }
-    } else {
-      message = `User not found for username: ${credentials.name}`;
-    }
-  } else {
-    message = 'Auth header not found';
-  }
-  if (message) {
-    console.warn(message);
-    res.status(401).json({ message: 'Access Denied' });
-
-  next();
-};
 
 // create the Express app
 const app = express();
@@ -119,4 +87,4 @@ app.set('port', process.env.PORT || 5000);
 // start listening on our port
 const server = app.listen(app.get('port'), () => {
   console.log(`Express server is listening on port ${server.address().port}`);
-})};
+});

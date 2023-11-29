@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 const User = require('./models').User;
 const Course = require('./models').Course;
 
-const { authenticateUser } = require('./app');
+const { authenticateUser } = require('./middleware/authUser.js');
 
 function asyncHandler(cb){
   return async(req,res,next) =>{
@@ -21,29 +21,26 @@ function asyncHandler(cb){
 router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
   // const users = await User.findAll();
   const user = req.currentUser;
-  res.json({
-    name: user.name,
-    username: user.username
-  }).status(200);
+  res.json(user).status(200);
 
 }));
 
 //POST creates a new user into the database
-router.post('/users', asyncHandler(async (req, res) => {
+router.post('/users', authenticateUser, asyncHandler(async (req, res) => {
   const errors = [];
   try{
     const user = await User.create(req.body);
     // Validate that we have a `name` value.
-  if (!user.firstName) {
-    errors.push('Please provide a value for "first name"');
-  }
-  if (!user.lastName) {
-    errors.push('Please provide a value for "last name"');
-  }
-  // Validate that we have an `email` value.
-  if (!user.emailAddress) {
-    errors.push('Please provide a value for "emailAddress"');
-  }
+  // if (!user.firstName) {
+  //   errors.push('Please provide a value for "first name"');
+  // }
+  // if (!user.lastName) {
+  //   errors.push('Please provide a value for "last name"');
+  // }
+  // // Validate that we have an `email` value.
+  // if (!user.emailAddress) {
+  //   errors.push('Please provide a value for "emailAddress"');
+  // }
   let password = user.password;
   if (!password) {
     errors.push('Please provide a value for "password"');
@@ -93,7 +90,7 @@ router.get('/courses/:id', asyncHandler(async(req, res, next) => {
   }));
 
 //POST creates a new course
-router.post('/courses', asyncHandler(async (req, res) => {
+router.post('/courses', authenticateUser, asyncHandler(async (req, res) => {
   const errors = [];
   try{
     const course = await Course.create(req.body);
@@ -121,9 +118,14 @@ router.post('/courses', asyncHandler(async (req, res) => {
 }));
 
 // Put updates course in the database
-router.put('/courses/:id', asyncHandler(async( req, res) => {
+router.put('/courses/:id', authenticateUser, asyncHandler(async( req, res) => {
   try{
     const course = await Course.findByPk(req.params.id);
+    if (course.userId !== req.currentUser.id){
+      const error = new Error("You are not authorized to update this course");
+      error.status = 401;
+      next(error);
+    }
     if (course){
       await course.update(req.body)
       res.status(204).end();
@@ -143,14 +145,19 @@ router.put('/courses/:id', asyncHandler(async( req, res) => {
 }));
 
 // DELETE delete course from database
-router.delete('/courses/:id', asyncHandler(async( req, res) => {
+router.delete('/courses/:id', authenticateUser, asyncHandler(async( req, res) => {
   try{
     const course = await Course.findByPk(req.params.id);
-    if (course){
+    if (course.userId !== req.currentUser.id){
+      const error = new Error("You are not authorized to delete this course");
+      error.status = 401;
+      next(error);
+    }
+    if (course.userId === req.currentUser.id){
       await course.destroy();
       res.status(204).end()
     } else{
-      const error = new Error("The page you're trying to find doesn't exist");
+      const error = new Error("The course you're trying to find doesn't exist");
       error.status = 404;
       next(error);
     }

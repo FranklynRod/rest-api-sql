@@ -26,7 +26,7 @@ router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
 }));
 
 //POST creates a new user into the database
-router.post('/users', authenticateUser, asyncHandler(async (req, res) => {
+router.post('/users', asyncHandler(async (req, res) => {
   const errors = [];
   try{
     const user = await User.create(req.body);

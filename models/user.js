@@ -49,7 +49,7 @@ module.exports = (sequelize, DataTypes) => {
         }
       },
       password: {
-        type: DataTypes.VIRTUAL,
+        type: DataTypes.STRING,
         allowNull: false,
         validate: {
           notEmpty: {

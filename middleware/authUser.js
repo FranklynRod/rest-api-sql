@@ -2,7 +2,7 @@
 const auth = require('basic-auth');
 const bcrypt = require('bcryptjs');
 
-const User = require('../models');
+const {User} = require('../models');
 
 
 exports.authenticateUser = async (req, res, next) => {

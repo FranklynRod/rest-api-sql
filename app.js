@@ -24,25 +24,6 @@ console.log('Testing the connection to the database...');
   } catch(error) {
     console.log('Unable to connect to the database...');
   }
-  // Retrieve users
-  // const users = await Course.findAll({
-  //   include: [{
-  //     model: Course,
-  //     as: 'student',
-  //   }],
-  // });
-  // console.log(users.map(user => user.get({ plain: true })));
-
-  // app.use('/api', router);
-
-  // // Retrieve courses
-  // const courses = await User.findAll({
-  //   include: [{
-  //     model: User,
-  //     as: 'student',
-  //   }],
-  // });
-  // console.log(JSON.stringify(courses, null, 2));
 })();
 
 // create the Express app

@@ -30,26 +30,6 @@ router.post('/users', asyncHandler(async (req, res) => {
   const errors = [];
   try{
     const user = await User.create(req.body);
-    // Validate that we have a `name` value.
-  // if (!user.firstName) {
-  //   errors.push('Please provide a value for "first name"');
-  // }
-  // if (!user.lastName) {
-  //   errors.push('Please provide a value for "last name"');
-  // }
-  // // Validate that we have an `email` value.
-  // if (!user.emailAddress) {
-  //   errors.push('Please provide a value for "emailAddress"');
-  // }
-  // let password = user.password;
-  // if (!password) {
-  //   errors.push('Please provide a value for "password"');
-  // } else if (password.length < 8 || password.length > 20) {
-  //   errors.push('Your password should be between 8 and 20 characters');
-  // } else {
-  //   user.password = bcrypt.hashSync(password, 10);
-    
-  // }
   if (errors.length > 0) {
     // Return the validation errors to the client.
     res.status(400).json({ errors });
@@ -99,26 +79,21 @@ router.get('/courses/:id', asyncHandler(async(req, res, next) => {
 
 //POST creates a new course
 router.post('/courses', authenticateUser, asyncHandler(async (req, res) => {
-  // const errors = [];
+
   try{
     const course = await Course.create(req.body);
     if (!course.title) {
       const error = new Error("You are not authorized to update this course");
       error.status = 400;
       next(error);
-      // errors.push('Please provide a value for "title"');
     }
     if (!course.description) {
-      // errors.push('Please provide a value for "description"');
+      
       const error = new Error("You are not authorized to update this course");
       error.status = 400;
       next(error);
     }
-    // if (errors.length > 0) {
-    //   // Return the validation errors to the client.
-    //   res.status(400).json({ errors });
-    // } 
-    // Set the status to 201 Created and end the response.
+  
     res.status(201).location(`/courses/${course.id}`).end();
     
   } catch(error){

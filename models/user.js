@@ -1,6 +1,6 @@
 'use strict';
 const { Model } = require('sequelize');
-
+const bcrypt = require('bcryptjs');
 
 
 module.exports = (sequelize, DataTypes) => {
@@ -20,8 +20,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       validate: {
         notEmpty: {
-          msg: 'Please provide a value for "firstName"',
+          msg: 'Please provide a value for "first name"',
         },
+        notNull: {
+          msg: 'Please provide a value for "first name"',
+        }
       }
     },
     lastName: {
@@ -31,6 +34,9 @@ module.exports = (sequelize, DataTypes) => {
         notEmpty: {
           msg: 'Please provide a value for "last name"',
         },
+        notEmpty: {
+          msg: 'Please provide a value for "last name"',
+        }
       }
     },
     emailAddress: {
@@ -43,8 +49,11 @@ module.exports = (sequelize, DataTypes) => {
           notEmpty: {
             msg: 'Please provide a value for "email address"',
           },
+          
           isEmail:{
             msg: "Please provide a valid email address"
+          }, notEmpty: {
+            msg: 'Please provide a value for "email address"',
           }
         }
       },
@@ -55,7 +64,16 @@ module.exports = (sequelize, DataTypes) => {
           notEmpty: {
             msg: 'Please provide a value for "password"',
           },
-        }
+          notEmpty: {
+            msg: 'Please provide a value for "password"',
+          }
+        },
+        set(val) {
+      if (val) {
+        const hashedPassword = bcrypt.hashSync(val, 10);
+        this.setDataValue('password', hashedPassword);
+      }
+      },
       },
   }, { sequelize });
     

@@ -23,15 +23,21 @@ Course.init({
         notEmpty: {
           msg: 'Please provide a value for "title"',
         },
+        notEmpty: {
+          msg: 'Please provide a value for "title"',
+        }
       }
     },
     description: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       allowNull: false,
       validate: {
         notEmpty: {
           msg: 'Please provide a value for "description"',
         },
+        notEmpty: {
+          msg: 'Please provide a value for "description"',
+        }
       }
     },
     estimatedTime: {

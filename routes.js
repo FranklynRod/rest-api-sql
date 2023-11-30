@@ -41,19 +41,15 @@ router.post('/users', asyncHandler(async (req, res) => {
   // if (!user.emailAddress) {
   //   errors.push('Please provide a value for "emailAddress"');
   // }
-  let password = user.password;
-  if (!password) {
-    errors.push('Please provide a value for "password"');
-  } else if (password.length < 8 || password.length > 20) {
-    errors.push('Your password should be between 8 and 20 characters');
-  } else {
-    user.password = bcrypt.hashSync(password, 10);
-    // set(val) {
-    //   if (val === this.password) {
-    //     const hashedPassword = bcrypt.hashSync(val, 10);
-    //     this.setDataValue('confirmedPassword', hashedPassword);
-    //   }
-  }
+  // let password = user.password;
+  // if (!password) {
+  //   errors.push('Please provide a value for "password"');
+  // } else if (password.length < 8 || password.length > 20) {
+  //   errors.push('Your password should be between 8 and 20 characters');
+  // } else {
+  //   user.password = bcrypt.hashSync(password, 10);
+    
+  // }
   if (errors.length > 0) {
     // Return the validation errors to the client.
     res.status(400).json({ errors });
@@ -73,13 +69,23 @@ router.post('/users', asyncHandler(async (req, res) => {
 
 //GET all courses
 router.get('/courses', asyncHandler(async (req, res) => {
-  const courses = await Course.findAll();
+  const courses = await Course.findAll({
+    include: {
+      model: Course,
+      attributes:['firstName', 'lastName', 'emailAddress']
+  }
+   });
   res.json(courses).status(200);
 }));
 
 //GET specific course
 router.get('/courses/:id', asyncHandler(async(req, res, next) => {
-    const course = await Course.findByPk(req.params.id);
+    const course = await Course.findByPk(req.params.id ,{
+      include: {
+        model: Course,
+        attributes:['firstName', 'lastName', 'emailAddress']
+    }
+     });
     if (course){
       res.json(course).status(200);
     } else{
@@ -91,21 +97,27 @@ router.get('/courses/:id', asyncHandler(async(req, res, next) => {
 
 //POST creates a new course
 router.post('/courses', authenticateUser, asyncHandler(async (req, res) => {
-  const errors = [];
+  // const errors = [];
   try{
     const course = await Course.create(req.body);
     if (!course.title) {
-      errors.push('Please provide a value for "title"');
+      const error = new Error("You are not authorized to update this course");
+      error.status = 400;
+      next(error);
+      // errors.push('Please provide a value for "title"');
     }
     if (!course.description) {
-      errors.push('Please provide a value for "description"');
+      // errors.push('Please provide a value for "description"');
+      const error = new Error("You are not authorized to update this course");
+      error.status = 400;
+      next(error);
     }
-    if (errors.length > 0) {
-      // Return the validation errors to the client.
-      res.status(400).json({ errors });
-    } 
+    // if (errors.length > 0) {
+    //   // Return the validation errors to the client.
+    //   res.status(400).json({ errors });
+    // } 
     // Set the status to 201 Created and end the response.
-    res.status(201).location("/courses").end();
+    res.status(201).location(`/courses/${course.id}`).end();
     
   } catch(error){
     if(error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') { 
@@ -130,7 +142,7 @@ router.put('/courses/:id', authenticateUser, asyncHandler(async( req, res) => {
       await course.update(req.body)
       res.status(204).end();
     } else{
-      const error = new Error("The page you're trying to find doesn't exist");
+      const error = new Error("The course you're trying to find doesn't exist");
       error.status = 404;
       next(error);
     }

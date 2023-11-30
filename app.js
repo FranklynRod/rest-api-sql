@@ -22,6 +22,7 @@ console.log('Testing the connection to the database...');
     console.log('Synchronizing the models with the database...');
     await sequelize.sync();
   } catch(error) {
+    console.log('Unable to connect to the database...');
   }
   // Retrieve users
   // const users = await Course.findAll({

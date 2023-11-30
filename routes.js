@@ -71,7 +71,8 @@ router.post('/users', asyncHandler(async (req, res) => {
 router.get('/courses', asyncHandler(async (req, res) => {
   const courses = await Course.findAll({
     include: {
-      model: Course,
+      model: User,
+     
       attributes:['firstName', 'lastName', 'emailAddress']
   }
    });
@@ -82,7 +83,8 @@ router.get('/courses', asyncHandler(async (req, res) => {
 router.get('/courses/:id', asyncHandler(async(req, res, next) => {
     const course = await Course.findByPk(req.params.id ,{
       include: {
-        model: Course,
+        model: User,
+        
         attributes:['firstName', 'lastName', 'emailAddress']
     }
      });
@@ -157,7 +159,7 @@ router.put('/courses/:id', authenticateUser, asyncHandler(async( req, res) => {
 }));
 
 // DELETE delete course from database
-router.delete('/courses/:id', authenticateUser, asyncHandler(async( req, res) => {
+router.delete('/courses/:id', authenticateUser, asyncHandler(async( req, res, next) => {
   try{
     const course = await Course.findByPk(req.params.id);
     if (course.userId !== req.currentUser.id){
@@ -175,7 +177,7 @@ router.delete('/courses/:id', authenticateUser, asyncHandler(async( req, res) =>
     }
   }catch(error){
     if(error.name === "SequelizeValidationError") { 
-      res.status(400)
+      res.status(400).json({ error });
     } else {
       throw error;
     } 
